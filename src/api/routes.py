@@ -1,22 +1,42 @@
-"""
-This module takes care of starting the API Server, Loading the DB and Adding the endpoints
-"""
-from flask import Flask, request, jsonify, url_for, Blueprint
-from api.models import db, User
-from api.utils import generate_sitemap, APIException
+from flask import request, jsonify, Blueprint
 from flask_cors import CORS
+from api.models import db, User
 
 api = Blueprint('api', __name__)
-
-# Allow CORS requests to this API
 CORS(api)
 
-
-@api.route('/hello', methods=['POST', 'GET'])
+@api.route('/hello', methods=['GET'])
 def handle_hello():
+    return jsonify({ "message": "Hola! Conexión exitosa con el backend." }), 200
 
-    response_body = {
-        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
-    }
+@api.route('/signup', methods=['POST'])
+def signup():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
 
-    return jsonify(response_body), 200
+    if not email or not password:
+        return jsonify({ "msg": "Faltan datos" }), 400
+
+    existing_user = User.query.filter_by(email=email).first()
+    if existing_user:
+        return jsonify({ "msg": "El usuario ya existe" }), 409
+
+    new_user = User(email=email, password=password)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({ "msg": "Usuario creado con éxito" }), 201
+
+@api.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    email = data.get("email")
+    password = data.get("password")
+
+    user = User.query.filter_by(email=email, password=password).first()
+
+    if not user:
+        return jsonify({ "msg": "Credenciales inválidas" }), 401
+
+    return jsonify({ "msg": "Inicio de sesión exitoso", "user": email }), 200
