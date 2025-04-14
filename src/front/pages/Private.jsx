@@ -19,23 +19,29 @@ export const Private = () => {
 
     fetch(`${backendUrl}/api/private`, {
       headers: {
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     })
-      .then((res) => res.json().then((data) => ({ status: res.status, body: data })))
-      .then(({ status, body }) => {
-        if (status === 200) {
-          setUserData(body);
-        } else {
-          setError(body.msg || "Unauthorized");
-          sessionStorage.removeItem("token");
-          navigate("/login");
+      .then((response) => {
+        if (!response.ok) {
+          return response.json().then((data) => {
+            throw new Error(data.msg || "Unauthorized");
+          });
         }
+        return response.json();
+      })
+      .then((data) => {
+        setUserData(data);
+      })
+      .catch((err) => {
+        setError(err.message);
+        sessionStorage.removeItem("token");
+        navigate("/login");
       })
       .finally(() => {
         setLoading(false);
       });
-  }, [navigate]);
+  }, [navigate, backendUrl]);
 
   const handleLogout = () => {
     sessionStorage.removeItem("token");

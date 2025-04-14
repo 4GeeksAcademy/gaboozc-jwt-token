@@ -5,7 +5,7 @@ import os
 from flask import Flask, request, jsonify, url_for, send_from_directory
 from flask_migrate import Migrate
 from flask_swagger import swagger
-from flask_cors import CORS  # ← AÑADIDO
+from flask_cors import CORS 
 from api.utils import APIException, generate_sitemap
 from api.models import db
 from api.routes import api
@@ -17,10 +17,10 @@ static_file_dir = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../
 app = Flask(__name__)
 app.url_map.strict_slashes = False
 
-# CORS configurado para permitir el frontend en GitHub Codespaces
-CORS(app, resources={r"/api/*": {"origins": "https://jubilant-adventure-v6qpx95p47642659-3000.app.github.dev"}})
 
-# Database configuration
+CORS(app)
+
+
 db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
@@ -31,26 +31,26 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 MIGRATE = Migrate(app, db, compare_type=True)
 db.init_app(app)
 
-# Admin y comandos
+
 setup_admin(app)
 setup_commands(app)
 
-# API endpoints
+
 app.register_blueprint(api, url_prefix='/api')
 
-# Manejo de errores
+
 @app.errorhandler(APIException)
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
-# Sitemap
+
 @app.route('/')
 def sitemap():
     if ENV == "development":
         return generate_sitemap(app)
     return send_from_directory(static_file_dir, 'index.html')
 
-# Servir archivos estáticos
+
 @app.route('/<path:path>', methods=['GET'])
 def serve_any_other_file(path):
     if not os.path.isfile(os.path.join(static_file_dir, path)):
@@ -59,7 +59,7 @@ def serve_any_other_file(path):
     response.cache_control.max_age = 0
     return response
 
-# Arrancar servidor
+
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3001))
     app.run(host='0.0.0.0', port=PORT, debug=True)

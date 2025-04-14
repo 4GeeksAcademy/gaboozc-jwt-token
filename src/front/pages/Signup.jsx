@@ -8,12 +8,35 @@ export const Signup = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
-  // ✅ Using your specific VITE_BACKEND_URL (from .env)
   const backendUrl = import.meta.env.VITE_BACKEND_URL || "http://localhost:3001";
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const validatePassword = (password) => {
+    const hasNumber = /\d/;
+    const hasUpperCase = /[A-Z]/;
+    return password.length >= 8 && hasNumber.test(password) && hasUpperCase.test(password);
+  };
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError("");
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!validateEmail(trimmedEmail)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!validatePassword(trimmedPassword)) {
+      setError("Password must be at least 8 characters long, include a number and an uppercase letter.");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -23,8 +46,8 @@ export const Signup = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          email: email.trim(),
-          password: password.trim(),
+          email: trimmedEmail,
+          password: trimmedPassword,
         }),
       });
 
@@ -85,7 +108,7 @@ export const Signup = () => {
             placeholder="At least 8 characters"
           />
           <div className="form-text">
-            Password must contain at least one number and uppercase letter
+            Must contain at least 1 number and 1 uppercase letter
           </div>
         </div>
 
