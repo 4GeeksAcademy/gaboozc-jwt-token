@@ -78,6 +78,11 @@ def login():
     except Exception as e:
         return jsonify({"success": False, "msg": "Login failed"}), 500
 
-@api.route('/protected', methods=['GET'])
-def protected():
-    return jsonify({"msg": "This is a protected route"}), 200
+@api.route('/private', methods=['GET'])
+def private():
+    return jsonify({
+        "msg": "This is a protected route",
+        "user": {
+            "email": "test@example.com"  # O puedes extraerlo del token
+        }
+    }), 200
